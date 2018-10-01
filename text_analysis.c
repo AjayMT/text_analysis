@@ -34,9 +34,9 @@
 //
 // In this case, I am defining a 'wordmap' type as a 'struct'.
 // 'structs' are essentially bundles of state, i.e collections of variables.
-// Each wordmap struct has three properties: text, frequency and mapsize.
+// Each wordmap struct has three properties: word, frequency and mapsize.
 typedef struct {
-  char *text;
+  char *word;
   int frequency;
   int mapsize;
 } wordmap;
@@ -214,8 +214,8 @@ wordmap *wordmap_construct (wordmap *map, char *string, char sep, int nwords)
       for (int i = 0; i < string - begin; i++) currentWord[i] = begin[i];
 
       // iterate through word nodes to find match
-      for (; (m - map) < nwords && m->text != NULL; m++) {
-        if (TA_streq(m->text, currentWord)) { // same word found
+      for (; (m - map) < nwords && m->word != NULL; m++) {
+        if (TA_streq(m->word, currentWord)) { // same word found
           m->frequency++;
           wordExists = true;
           break;
@@ -223,8 +223,8 @@ wordmap *wordmap_construct (wordmap *map, char *string, char sep, int nwords)
       }
 
       if ((! wordExists) && m - map < nwords) { // word does not exist in map
-        m->text = calloc(strlen(currentWord), sizeof(char));
-        strcpy(m->text, currentWord);
+        m->word = calloc(strlen(currentWord), sizeof(char));
+        strcpy(m->word, currentWord);
         m->frequency = 1;
         m->mapsize = nwords;
       }
@@ -244,8 +244,8 @@ wordmap *wordmap_construct (wordmap *map, char *string, char sep, int nwords)
 // this function returns the associated 'frequency' of 'word' in 'map'
 int wordmap_get_frequency (wordmap *map, char *word)
 {
-  for (wordmap *m = map; m->text != NULL && (m - map) < map->mapsize; m++)
-    if (TA_streq(m->text, word))
+  for (wordmap *m = map; m->word != NULL && (m - map) < map->mapsize; m++)
+    if (TA_streq(m->word, word))
       return m->frequency;
 
   return 0;
@@ -259,7 +259,7 @@ int wordmap_get_frequency (wordmap *map, char *word)
 void wordmap_free (wordmap *map)
 {
   for (int i = 0; i < map->mapsize; i++)
-    free((map + i)->text);
+    free((map + i)->word);
 
   free(map);
 }

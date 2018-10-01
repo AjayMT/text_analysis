@@ -69,7 +69,7 @@ int main (int argc, char *argv[])
   qsort(map, nwords, sizeof(wordmap), compare_word_frequency);
 
   for (int j = nwords - 1; j >= 0; j--)
-    printf("%s %d\n", map[j].text, map[j].frequency);
+    printf("%s %d\n", map[j].word, map[j].frequency);
 
   free(text);
   free(all_words);

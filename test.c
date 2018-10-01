@@ -29,7 +29,7 @@ int main (int argc, char *argv[])
   printf("\nfrequency map of extracted words:\n");
 
   for (wordmap *m = map; m - map < map->mapsize; m++)
-    printf("\t%s: %d\n", m->text, m->frequency);
+    printf("\t%s: %d\n", m->word, m->frequency);
 
   printf("\nfrequency of 'the': %d\n", wordmap_get_frequency(map, "the"));
   printf("frequency of 'quux': %d\n", wordmap_get_frequency(map, "quux"));
