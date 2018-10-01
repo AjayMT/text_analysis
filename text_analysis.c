@@ -34,7 +34,14 @@
 //
 // In this case, I am defining a 'wordmap' type as a 'struct'.
 // 'structs' are essentially bundles of state, i.e collections of variables.
-// Each wordmap struct has three properties: word, frequency and mapsize.
+// Each wordmap struct is essentially a word-frequency pair that is part
+// of a 'hash table' of words and frequencies.
+//
+// char *word is the word of a particular 'entry' in the 'hash table'
+// int frequency is the frequency of the word contained in wordmap.word
+// int mapsize is the total number of words in the 'hash table'
+//   (mapsize is really only a part of the struct to simplify operations on
+//    wordmaps. Unlike Java, C arrays do not know how big they are.)
 typedef struct {
   char *word;
   int frequency;
@@ -218,13 +225,18 @@ wordmap *wordmap_construct (wordmap *map, char *string, char sep, int nwords)
         m->word = calloc(strlen(currentWord), sizeof(char));
         strcpy(m->word, currentWord);
         m->frequency = 1;
-        m->mapsize = nwords;
       }
 
       string++;
       begin = string; // shift to beginning of next word in string
       free(currentWord);
     }
+
+  int mapsize = 0;
+  for (; mapsize < nwords && map[mapsize].word != NULL; mapsize++);
+
+  for (wordmap *m = map; (m - map) < mapsize; m++)
+    m->mapsize = mapsize;
 
   return map;
 }
@@ -237,7 +249,7 @@ wordmap *wordmap_construct (wordmap *map, char *string, char sep, int nwords)
 // this function returns the associated 'frequency' of 'word' in 'map'
 int wordmap_get_frequency (wordmap *map, char *word)
 {
-  for (wordmap *m = map; m->word != NULL && (m - map) < map->mapsize; m++)
+  for (wordmap *m = map; (m - map) < map->mapsize; m++)
     if (TA_streq(m->word, word))
       return m->frequency;
 
