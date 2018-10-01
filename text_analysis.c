@@ -44,9 +44,22 @@ typedef struct {
 // C has no concept of 'file' or 'package' scope, so to avoid naming
 // conflicts, I have to prefix all of my functions with 'TA' or 'wordmap'
 // and hope that they are unique.
+//
+// I am declaring all of my functions before implementing them.
+// This allows me to call every function from every other function without
+// causing 'undefined symbol' errors.
+int TA_streq (char *a, char *b);
+char *TA_to_lowercase (char *dst, char *string);
+char *TA_extract_words (char *dst, char *string, char sep);
+int TA_count_words (char *string, char sep);
+char *TA_filter_unique_words (char *dst, char *string, char sep);
+wordmap *wordmap_construct (wordmap *map, char *string, char sep, int nwords);
+int wordmap_get_frequency (wordmap *map, char *word);
+void wordmap_free (wordmap *map);
 
 // The 'streq' function checks if two strings (which are just character arrays)
 // are equal.
+//
 // char *a and char *b are the two strings to compare
 int TA_streq (char *a, char *b)
 {
@@ -63,6 +76,7 @@ int TA_streq (char *a, char *b)
 // to_lowercase converts all uppercase letters to lowercase letters in a
 // given string and stores the result in another character pointer (i.e
 // another reference variable).
+//
 // char *dst is the 'destination' pointer in which the result will be stored
 // char *string is the string to operate on
 // this function also returns the destination pointer
@@ -82,6 +96,7 @@ char *TA_to_lowercase (char *dst, char *string)
 // characters) from a given string and stores the results in a destination
 // pointer. The extracted words are separated by 'sep' when stored in the
 // destination pointer.
+//
 // char *dst is the destination pointer
 // char *string is the string to operate on
 // char sep is the separator character to insert between words
@@ -112,6 +127,7 @@ char *TA_extract_words (char *dst, char *string, char sep)
 
 // count_words counts the number of words in a given string, in which each
 // word is separated by 'sep'.
+//
 // char *string is the string to count words from
 // char sep is the character that separates words in 'string'
 // this function returns the number of words in 'string'
@@ -125,13 +141,11 @@ int TA_count_words (char *string, char sep)
   return count;
 }
 
-// filter_unique_words traverses a string and removes all words that
-// have been previously found in the string.
-//
-// The algorithm works as follows:
-// - enumerate through words in 'string', separated by 'sep'
-// - for each word, enumerate through words in 'dst', separated by 'sep'
-// - if word in 'string' is not in 'dst', insert word into 'dst' followed by 'sep'
+// filter_unique_words traverses a string and copies the first occurrence of
+// each word into a destination pointer.
+// This effectively removes all duplicate instances of every word in the string.
+// Words in 'string' as well as the destination pointer are separated by 'sep'.
+// This function uses wordmap_construct to create a list of unique words.
 //
 // char *dst is the destination pointer
 // char *string is the unfiltered string
@@ -139,48 +153,26 @@ int TA_count_words (char *string, char sep)
 // this function returns the destination pointer
 char *TA_filter_unique_words (char *dst, char *string, char sep)
 {
-  unsigned long dstindex = 0; // index of dst at which chars are inserted
-  unsigned long begin = 0; // beginning of current word in string
+  wordmap *map = wordmap_construct(
+    calloc(TA_count_words(string, sep), sizeof(wordmap)),
+    string,
+    sep,
+    TA_count_words(string, sep)
+    );
 
-  for (unsigned long i = 0; string[i] != '\0'; i++)
-    if (string[i] == sep) { // 'i' is at the end of a word
-      int dstcontains = false; // whether dst contains word
-      unsigned long dstbegin = 0; // beginning of current word in dst
-      char *currentWord = calloc(i - begin, sizeof(char)); // current word in string
+  int dstindex = 0;
 
-      for (int j = 0; j < i - begin; j++)
-        currentWord[j] = string[begin + j];
-
-      // enumerate through chars in dst upto dstindex
-      for (unsigned long k = 0; k <= dstindex; k++)
-        if (dst[k] == sep) { // 'k' is at the end of a word in dst
-          char *currentDstWord = calloc(k - dstbegin, sizeof(char)); // current word in dst
-
-          for (int l = 0; l < k - dstbegin; l++)
-            currentDstWord[l] = dst[dstbegin + l];
-
-          if (TA_streq(currentDstWord, currentWord))
-            dstcontains = true; // word exists in dst
-
-          k++;
-          dstbegin = k; // shift to beginning of next word in dst
-          free(currentDstWord);
-        }
-
-      if (! dstcontains) { // word does not exist in dst
-        for (int w = 0; w < strlen(currentWord); w++) { // insert word and move dstindex forward
-          dst[dstindex] = currentWord[w];
-          dstindex++;
-        }
-
-        dst[dstindex] = sep;
-        dstindex++;
-      }
-
-      i++;
-      begin = i; // shift to beginning of next word in string
-      free(currentWord);
+  for (int i = 0; i < map->mapsize && map[i].word != NULL; i++) {
+    for (int j = 0; map[i].word[j] != '\0'; j++) {
+      dst[dstindex] = map[i].word[j];
+      dstindex++;
     }
+
+    dst[dstindex] = sep;
+    dstindex++;
+  }
+
+  wordmap_free(map);
 
   return dst;
 }
@@ -239,6 +231,7 @@ wordmap *wordmap_construct (wordmap *map, char *string, char sep, int nwords)
 
 // wordmap_get_frequency returns the frequency of a given word in a
 // wordmap.
+//
 // wordmap *map is the map to search
 // char *word is the word to search for
 // this function returns the associated 'frequency' of 'word' in 'map'
@@ -255,6 +248,7 @@ int wordmap_get_frequency (wordmap *map, char *word)
 // the contents of a particular wordmap.
 // Java automatically handles memory management through a process called
 // 'garbage collection' -- C forces you to do all the housekeeping yourself.
+//
 // wordmap *map is the map to deallocate
 void wordmap_free (wordmap *map)
 {
