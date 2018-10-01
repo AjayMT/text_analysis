@@ -34,8 +34,8 @@
 //
 // In this case, I am defining a 'wordmap' type as a 'struct'.
 // 'structs' are essentially bundles of state, i.e collections of variables.
-// Each wordmap struct is essentially a word-frequency pair that is part
-// of a 'hash table' of words and frequencies.
+// Each wordmap struct is a word-frequency pair that is part of a 'hash table'
+// of words and frequencies.
 //
 // char *word is the word of a particular 'entry' in the 'hash table'
 // int frequency is the frequency of the word contained in wordmap.word
