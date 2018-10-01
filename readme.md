@@ -11,26 +11,34 @@ cd text_analysis
 make zipf
 ```
 
-Run `make test` instead of `make zipf` if you want to compile the test file.
+This will produce a binary file called `./zipf` in the `text_analysis` directory.
 
 I have no idea how C compilation works on Windows.
 
 ## Running
-The compilation step should have produced a binary file called `zipf` (`test` if you compiled the test program). You can run this program from your terminal.
+The compilation step should have produced a binary file called `zipf`. You can run this program from your terminal.
 
 ```sh
 ./zipf
 ```
 
-To read the first 10000 bytes of a file called `harry-potter.txt` and print out the resulting frequency map, you would do the following:
+If `zipf` receives no arguments or "help" as its first argument it will print a help message.
 
+To read the first 10000 bytes of a file called `harry-potter.txt` and print out the resulting frequency map, you would do the following:
 ```sh
 ./zipf 10000 < harry-potter.txt
 ```
 
+To run `zipf` on the test data (`test-data/harry-potter.txt`):
+```sh
+make example
+```
+
+This will write the output to a file called `out.txt`.
+
 To run tests:
 ```sh
-./test
+make test
 ```
 
 I'm sorry Windows users -- you'll have to figure this one out on your own as well.
