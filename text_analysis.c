@@ -179,6 +179,7 @@ char *TA_filter_unique_words (char *dst, char *string, char sep)
     dstindex++;
   }
 
+  dst[dstindex] = '\0';
   wordmap_free(map);
 
   return dst;
