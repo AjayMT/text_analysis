@@ -58,6 +58,7 @@ int main (int argc, char *argv[])
     );
 
   int nwords = TA_count_words(unique, sep);
+  fprintf(stderr, "nwords: %d\n", nwords);
 
   wordmap *map = wordmap_construct(
     calloc(nwords, sizeof(wordmap)),
@@ -75,6 +76,7 @@ int main (int argc, char *argv[])
   free(all_words);
   free(lowercase);
   free(unique);
+  wordmap_free(map);
 
   return 0;
 }

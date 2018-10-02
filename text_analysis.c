@@ -177,11 +177,9 @@ char *TA_filter_unique_words (char *dst, char *string, char sep)
   for (int i = 0; i < map->mapsize; i++) {
     if (map[i].word == NULL) continue;
 
-    for (int j = 0; map[i].word[j] != '\0'; j++) {
-      dst[dstindex] = map[i].word[j];
-      dstindex++;
-    }
+    memcpy(dst + dstindex, map[i].word, strlen(map[i].word));
 
+    dstindex += strlen(map[i].word);
     dst[dstindex] = sep;
     dstindex++;
   }
@@ -208,7 +206,7 @@ wordmap *wordmap_construct (wordmap *map, char *string, char sep, int nwords)
   for (; *string != '\0'; string++)
     if (*string == sep) { // 'string' is at the end of a word
       char *currentWord = calloc(string - begin, sizeof(char)); // current word in string
-      for (int i = 0; i < string - begin; i++) currentWord[i] = begin[i];
+      memcpy(currentWord, begin, string - begin);
 
       int key = wordmap_hash_word(currentWord, nwords);
       while (true) {
