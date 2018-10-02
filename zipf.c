@@ -51,8 +51,13 @@ int main (int argc, char *argv[])
     lowercase,
     sep
     );
+  char *unique = TA_filter_unique_words(
+    calloc(strlen(all_words), sizeof(char)),
+    all_words,
+    sep
+    );
 
-  int nwords = TA_count_words(all_words, sep);
+  int nwords = TA_count_words(unique, sep);
 
   wordmap *map = wordmap_construct(
     calloc(nwords, sizeof(wordmap)),
@@ -69,7 +74,7 @@ int main (int argc, char *argv[])
   free(text);
   free(all_words);
   free(lowercase);
-  wordmap_free(map);
+  free(unique);
 
   return 0;
 }

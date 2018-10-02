@@ -61,6 +61,7 @@ char *TA_extract_words (char *dst, char *string, char sep);
 int TA_count_words (char *string, char sep);
 char *TA_filter_unique_words (char *dst, char *string, char sep);
 wordmap *wordmap_construct (wordmap *map, char *string, char sep, int nwords);
+int wordmap_hash_word (char *word, int nwords);
 int wordmap_get_frequency (wordmap *map, char *word);
 void wordmap_free (wordmap *map);
 
@@ -70,6 +71,10 @@ void wordmap_free (wordmap *map);
 // char *a and char *b are the two strings to compare
 int TA_streq (char *a, char *b)
 {
+  if (a == b) return true;
+
+  if (a == NULL || b == NULL) return false;
+
   if (strlen(a) != strlen(b)) return false;
 
   // this loop enumerates through the characters in 'a' and 'b' until
@@ -167,9 +172,11 @@ char *TA_filter_unique_words (char *dst, char *string, char sep)
     TA_count_words(string, sep)
     );
 
-  int dstindex = 0;
+  unsigned long dstindex = 0;
 
-  for (int i = 0; i < map->mapsize && map[i].word != NULL; i++) {
+  for (int i = 0; i < map->mapsize; i++) {
+    if (map[i].word == NULL) continue;
+
     for (int j = 0; map[i].word[j] != '\0'; j++) {
       dst[dstindex] = map[i].word[j];
       dstindex++;
@@ -188,44 +195,35 @@ char *TA_filter_unique_words (char *dst, char *string, char sep)
 // wordmap_construct creates a 'wordmap' hash-table-like data structure
 // from a given string. Each word is mapped to (i.e is in the same struct as)
 // its frequency of occurrence in the string.
-//
-// The algorithm works as follows:
-// - enumerate through words in 'string', separated by 'sep'
-// - for each word, enumerate through wordmap nodes in 'map'
-// - if word exists in 'map', increment its frequency
-// - otherwise, insert a new word node into 'map'
+// This function uses wordmap_hash_word as its hash function.
 //
 // wordmap *map is a pointer to wordmap which will be populated
 // char *string is the string to analyse
 // char sep is the character that separates words in 'string'
-// int nwords is the maximum number of words to insert into the wordmap
-//   (the primary purpose of 'nwords' is to make memory allocation easier
-//    and avoid segmentation faults)
+// int nwords is the maximum number of words in the wordmap
 wordmap *wordmap_construct (wordmap *map, char *string, char sep, int nwords)
 {
   char *begin = string; // beginning of current word in string
 
   for (; *string != '\0'; string++)
     if (*string == sep) { // 'string' is at the end of a word
-      int wordExists = false; // whether the word already exists in map
-      wordmap *m = map; // pointer to current wordmap node
       char *currentWord = calloc(string - begin, sizeof(char)); // current word in string
-
       for (int i = 0; i < string - begin; i++) currentWord[i] = begin[i];
 
-      // iterate through word nodes to find match
-      for (; (m - map) < nwords && m->word != NULL; m++) {
-        if (TA_streq(m->word, currentWord)) { // same word found
-          m->frequency++;
-          wordExists = true;
+      int key = wordmap_hash_word(currentWord, nwords);
+      while (true) {
+        if (map[key].word == NULL) { // insert new word into map
+          map[key].word = calloc(strlen(currentWord), sizeof(char));
+          strcpy(map[key].word, currentWord);
+          map[key].frequency = 1;
+          map[key].mapsize = nwords;
+          break;
+        } else if (TA_streq(currentWord, map[key].word)) { // increment frequency of existing word
+          map[key].frequency++;
           break;
         }
-      }
 
-      if ((! wordExists) && m - map < nwords) { // word does not exist in map
-        m->word = calloc(strlen(currentWord), sizeof(char));
-        strcpy(m->word, currentWord);
-        m->frequency = 1;
+        key = (key + 1) % nwords;
       }
 
       string++;
@@ -233,13 +231,23 @@ wordmap *wordmap_construct (wordmap *map, char *string, char sep, int nwords)
       free(currentWord);
     }
 
-  int mapsize = 0;
-  for (; mapsize < nwords && map[mapsize].word != NULL; mapsize++);
-
-  for (wordmap *m = map; (m - map) < mapsize; m++)
-    m->mapsize = mapsize;
+  map[0].mapsize = nwords;
 
   return map;
+}
+
+// This is the hash function used by wordmap.
+// This particular type of hash function is called an 'integer modulo' hash.
+//
+// char *word is the word to hash
+// int nwords is the maximum number of words in the map
+// this function returns the produced key
+int wordmap_hash_word (char *word, int nwords)
+{
+  int sum = 0;
+  for (; *word != '\0'; word++) sum += (int)(*word);
+
+  return sum % nwords;
 }
 
 // wordmap_get_frequency returns the frequency of a given word in a
@@ -250,9 +258,13 @@ wordmap *wordmap_construct (wordmap *map, char *string, char sep, int nwords)
 // this function returns the associated 'frequency' of 'word' in 'map'
 int wordmap_get_frequency (wordmap *map, char *word)
 {
-  for (wordmap *m = map; (m - map) < map->mapsize; m++)
-    if (TA_streq(m->word, word))
-      return m->frequency;
+  int key = wordmap_hash_word(word, map->mapsize);
+  int i = key;
+
+  do {
+    if (TA_streq(map[i].word, word)) return map[i].frequency;
+    i = (i + 1) % map->mapsize;
+  } while (i != key);
 
   return 0;
 }

@@ -2,7 +2,7 @@
 zipf: zipf.c text_analysis.c
 	$(CC) -o zipf zipf.c
 
-test: test.c text_analysis.c
+test: FORCE
 	$(CC) -o test test.c
 	./test
 
@@ -11,3 +11,5 @@ example: zipf
 
 clean:
 	rm ./zipf ./test ./out.txt
+
+FORCE: ;
