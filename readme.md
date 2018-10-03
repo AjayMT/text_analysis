@@ -41,4 +41,4 @@ To run tests:
 make test
 ```
 
-I'm sorry Windows users -- you'll have to figure this one out on your own as well.
+TODO windows instructions
