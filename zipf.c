@@ -51,14 +51,8 @@ int main (int argc, char *argv[])
     lowercase,
     sep
     );
-  char *unique = TA_filter_unique_words(
-    calloc(strlen(all_words), sizeof(char)),
-    all_words,
-    sep
-    );
 
-  int nwords = TA_count_words(unique, sep);
-  fprintf(stderr, "nwords: %d\n", nwords);
+  int nwords = TA_count_words(all_words, sep);
 
   wordmap *map = wordmap_construct(
     calloc(nwords, sizeof(wordmap)),
@@ -67,15 +61,25 @@ int main (int argc, char *argv[])
     nwords
     );
 
-  qsort(map, map->mapsize, sizeof(wordmap), compare_word_frequency);
+  wordmap *consolidated = wordmap_consolidate(
+    calloc(nwords, sizeof(wordmap)),
+    map
+    );
 
-  for (int j = map->mapsize - 1; j >= 0; j--)
-    printf("%s %d\n", map[j].word, map[j].frequency);
+  qsort(
+    consolidated,
+    consolidated->mapsize,
+    sizeof(wordmap),
+    compare_word_frequency
+    );
+
+  for (int j = consolidated->mapsize - 1; j >= 0; j--)
+    printf("%s %d\n", consolidated[j].word, consolidated[j].frequency);
 
   free(text);
   free(all_words);
   free(lowercase);
-  free(unique);
+  wordmap_free(consolidated);
   wordmap_free(map);
 
   return 0;

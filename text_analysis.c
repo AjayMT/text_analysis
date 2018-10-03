@@ -61,6 +61,7 @@ char *TA_extract_words (char *dst, char *string, char sep);
 int TA_count_words (char *string, char sep);
 char *TA_filter_unique_words (char *dst, char *string, char sep);
 wordmap *wordmap_construct (wordmap *map, char *string, char sep, int nwords);
+wordmap *wordmap_consolidate (wordmap *new, wordmap *original);
 int wordmap_hash_word (char *word, int nwords);
 int wordmap_get_frequency (wordmap *map, char *word);
 void wordmap_free (wordmap *map);
@@ -232,6 +233,33 @@ wordmap *wordmap_construct (wordmap *map, char *string, char sep, int nwords)
   map[0].mapsize = nwords;
 
   return map;
+}
+
+// wordmap_consolidate 'de-fragments' a wordmap by moving all words
+// into one contiguous block of memory.
+// This needs to be done because wordmaps are 'open address' hash tables
+// that can have blocks of null data between words, which makes them
+// difficult to iterate over.
+//
+// wordmap *new is a pointer to the new, consolidated wordmap
+// wordmap *original is the fragmented wordmap produced by wordmap_construct
+// this function also returns a pointer to the new wordmap
+wordmap *wordmap_consolidate (wordmap *new, wordmap *original)
+{
+  int newindex = 0;
+  for (int i = 0; i < original->mapsize; i++) {
+    if (original[i].word == NULL) continue;
+
+    new[newindex].word = calloc(strlen(original[i].word), sizeof(char));
+    strcpy(new[newindex].word, original[i].word);
+    new[newindex].frequency = original[i].frequency;
+    newindex++;
+  }
+
+  for (int i = 0; i < newindex; i++)
+    new[i].mapsize = newindex;
+
+  return new;
 }
 
 // This is the hash function used by wordmap.
