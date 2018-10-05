@@ -7,7 +7,7 @@ test: FORCE
 	./test
 
 example: zipf
-	./zipf $(shell stat --printf="%s" ./test-data/harry-potter.txt) < ./test-data/harry-potter.txt > ./out.txt
+	./zipf $(shell stat --printf="%s" ./test-data/sherlock.txt) < ./test-data/sherlock.txt > ./out.txt
 
 clean:
 	rm ./zipf ./test ./out.txt

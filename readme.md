@@ -29,7 +29,7 @@ To read the first 10000 bytes of a file called `harry-potter.txt` and print out 
 ./zipf 10000 < harry-potter.txt
 ```
 
-To run `zipf` on the test data (`test-data/harry-potter.txt`):
+To run `zipf` on the test data (`test-data/sherlock.txt`):
 ```sh
 make example
 ```
