@@ -66,6 +66,8 @@ int main (int argc, char *argv[])
     map
     );
 
+  fprintf(stderr, "number of words: %d\n", consolidated->mapsize);
+
   qsort(
     consolidated,
     consolidated->mapsize,
