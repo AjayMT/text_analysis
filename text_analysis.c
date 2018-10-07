@@ -129,8 +129,10 @@ char *TA_extract_words (char *dst, char *string, char sep)
     for(; (! isalpha(*string)) && *string != '\0'; string++);
 
     // insert a separator
-    dst[dstindex] = sep;
-    dstindex++;
+    if (dstindex > 0) {
+      dst[dstindex] = sep;
+      dstindex++;
+    }
   }
 
   dst[dstindex] = '\0';
@@ -206,13 +208,14 @@ wordmap *wordmap_construct (wordmap *map, char *string, char sep, int nwords)
 
   for (; *string != '\0'; string++)
     if (*string == sep) { // 'string' is at the end of a word
-      char *currentWord = calloc(string - begin, sizeof(char)); // current word in string
+      char *currentWord = calloc(string - begin + 1, sizeof(char));
       memcpy(currentWord, begin, string - begin);
+      currentWord[string - begin] = '\0';
 
       int key = wordmap_hash_word(currentWord, nwords);
       while (true) {
         if (map[key].word == NULL) { // insert new word into map
-          map[key].word = calloc(strlen(currentWord), sizeof(char));
+          map[key].word = calloc(string - begin + 1, sizeof(char));
           strcpy(map[key].word, currentWord);
           map[key].frequency = 1;
           map[key].mapsize = nwords;
@@ -250,7 +253,7 @@ wordmap *wordmap_consolidate (wordmap *new, wordmap *original)
   for (int i = 0; i < original->mapsize; i++) {
     if (original[i].word == NULL) continue;
 
-    new[newindex].word = calloc(strlen(original[i].word), sizeof(char));
+    new[newindex].word = calloc(strlen(original[i].word) + 1, sizeof(char));
     strcpy(new[newindex].word, original[i].word);
     new[newindex].frequency = original[i].frequency;
     newindex++;
