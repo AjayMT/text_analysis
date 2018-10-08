@@ -208,14 +208,14 @@ wordmap *wordmap_construct (wordmap *map, char *string, char sep, int nwords)
 
   for (; *string != '\0'; string++)
     if (*string == sep) { // 'string' is at the end of a word
-      char *currentWord = calloc(string - begin + 1, sizeof(char));
+      char *currentWord = malloc((string - begin + 1) * sizeof(char));
       memcpy(currentWord, begin, string - begin);
       currentWord[string - begin] = '\0';
 
       int key = wordmap_hash_word(currentWord, nwords);
       while (true) {
         if (map[key].word == NULL) { // insert new word into map
-          map[key].word = calloc(string - begin + 1, sizeof(char));
+          map[key].word = malloc((string - begin + 1) * sizeof(char));
           strcpy(map[key].word, currentWord);
           map[key].frequency = 1;
           map[key].mapsize = nwords;
