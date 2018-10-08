@@ -273,8 +273,9 @@ wordmap *wordmap_consolidate (wordmap *new, wordmap *original)
 // this function returns the produced key
 int wordmap_hash_word (char *word, int nwords)
 {
-  int sum = 0;
-  for (; *word != '\0'; word++) sum += (int)(*word);
+  unsigned long sum = 0;
+  for (; *word != '\0'; word++)
+    sum += (int)(*word) * (int)(*word);
 
   return sum % nwords;
 }
